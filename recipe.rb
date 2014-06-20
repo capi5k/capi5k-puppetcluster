@@ -12,7 +12,7 @@ PUPPET_VERSION=puppet_version
 namespace :puppetcluster do
   
   desc 'Install a puppet cluster' 
-  task :default, :on_errors => :continue do
+  task :default, :on_error => :continue do
     puppet
     master::default
     clients::default
@@ -51,7 +51,8 @@ namespace :puppetcluster do
   end
 
   namespace :clients do 
-
+    
+    desc 'Install the clients'
     task :default do
       install
       certs
@@ -64,11 +65,12 @@ namespace :puppetcluster do
       run "echo '\n #{ipmaster} puppet' >> /etc/hosts"
     end
 
-    task :certs, :roles => [:puppet_clients], :on_errors => :continue do
+    task :certs, :roles => [:puppet_clients], :on_error => :continue do
       set :user, "root"   
       run "puppet agent --test" 
     end
-  end
+
+  end # clients
 
   desc 'Sign all pending certificates'
   task :sign_all, :roles => [:puppet_master] do
