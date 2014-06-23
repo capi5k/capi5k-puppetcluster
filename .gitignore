@@ -3,4 +3,6 @@ node_modules
 exports
 bower_components
 xpm_modules
+tmp/*
+!tmp/readme.txt
 
