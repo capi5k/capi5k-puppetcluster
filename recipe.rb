@@ -23,8 +23,9 @@ namespace :puppetcluster do
     set :user, "root"
     env = "PUPPET_VERSION=#{PUPPET_VERSION}"
     env += " #{proxy}"
-    run "#{apt_get_p} install -y rubygems" 
     run "#{apt_get_p} update && #{apt_get_p} install -y curl" 
+    # TODO fix ubuntu 1404
+    run "#{apt_get_p} install -y rubygems" 
     run "#{proxy} curl -L https://raw.github.com/pmorillon/puppet-puppet/master/files/scripts/puppet_install.sh | #{env} sh"
   end
 
