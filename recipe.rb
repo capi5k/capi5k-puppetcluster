@@ -13,20 +13,25 @@ namespace :puppetcluster do
   
   desc 'Install a puppet cluster' 
   task :default, :on_error => :continue do
+    rubygems
     puppet
     master::default
     clients::default
     sign_all
   end
+  
+  task :rubygems, :roles => [:puppet_master, :puppet_clients], :on_error => :continue do
+    set :user, "root"
+    run "#{apt_get_p} install -y rubygems" 
+  end
+
 
   task :puppet, :roles => [:puppet_master, :puppet_clients] do
     set :user, "root"
     env = "PUPPET_VERSION=#{PUPPET_VERSION}"
     env += " #{proxy}"
     run "#{apt_get_p} update && #{apt_get_p} install -y curl" 
-    # TODO fix ubuntu 1404
-    run "#{apt_get_p} install -y rubygems" 
-    run "#{proxy} curl -L https://raw.github.com/pmorillon/puppet-puppet/master/files/scripts/puppet_install.sh | #{env} sh"
+    run "#{proxy} https://raw.githubusercontent.com/pmorillon/puppet-puppet/master/extras/bootstrap/puppet_install.sh | #{env} sh"
   end
 
   namespace :master do
