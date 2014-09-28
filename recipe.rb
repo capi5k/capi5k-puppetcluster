@@ -31,7 +31,7 @@ namespace :puppetcluster do
     env = "PUPPET_VERSION=#{PUPPET_VERSION}"
     env += " #{proxy}"
     run "#{apt_get_p} update && #{apt_get_p} install -y curl" 
-    run "#{proxy} https://raw.githubusercontent.com/pmorillon/puppet-puppet/master/extras/bootstrap/puppet_install.sh | #{env} sh"
+    run "#{proxy} curl -L https://raw.githubusercontent.com/pmorillon/puppet-puppet/master/extras/bootstrap/puppet_install.sh | #{env} sh"
   end
 
   namespace :master do
