@@ -90,57 +90,15 @@ namespace :puppetcluster do
     desc 'Add passenger support for the puppet master'
     task :default do
       install
-      config
-      vhost_generate
-      vhost_enable
-      start
     end
 
     desc 'Install apache2 and passenger'
     task :install, :roles => [:puppet_master] do
       set :user, "root"
-      run "#{apt_get_p} -y install apache2 ruby1.8-dev rubygems"
-      run "a2enmod ssl"
-      run "a2enmod headers"
-      run "#{gem_p} install rack passenger"
-      # missing headers (required by the installer)
-      run "#{apt_get_p} -y install libcurl4-openssl-dev libssl-dev zlib1g-dev apache2-threaded-dev libapr1-dev libaprutil1-dev"
-      run "passenger-install-apache2-module --auto"
+      upload "#{puppet_path}/passenger.sh", "passenger.sh", :via => :scp
+      env = " #{proxy}"
+      run "#{env} sh passenger.sh" 
     end
-
-    desc 'Configure apache2 to use passenger'
-    task :config, :roles => [:puppet_master] do
-      set :user, "root"
-      run "mkdir -p /usr/share/puppet/rack/puppetmasterd"
-      run "mkdir /usr/share/puppet/rack/puppetmasterd/public /usr/share/puppet/rack/puppetmasterd/tmp"
-      run "cp /usr/share/puppet/ext/rack/config.ru /usr/share/puppet/rack/puppetmasterd/"
-      run "chown puppet:puppet /usr/share/puppet/rack/puppetmasterd/config.ru"
-    end
-
-    task :vhost_generate do
-      template = File.read("#{puppet_path}/templates/puppetmaster.erb")
-      renderer = ERB.new(template)
-      @puppet_master = find_servers(:roles => [:puppet_master]).first
-      generate = renderer.result(binding)
-      myFile = File.open("#{puppet_path}/tmp/puppetmaster", "w")
-      myFile.write(generate)
-      myFile.close
-    end
-
-    task :vhost_enable, :roles => [:puppet_master] do
-      set :user, "root"
-      upload  "#{puppet_path}/tmp/puppetmaster", "/etc/apache2/sites-available/puppetmaster", :via => :scp
-      run "a2ensite puppetmaster"
-    end
-
-    task :start, :roles => [:puppet_master] do
-      set :user, "root"
-      # remove boot startup
-      run "update-rc.d -f puppetmaster remove"
-      run "service puppetmaster stop"
-      run "/etc/init.d/apache2 restart"
-    end
-
 
   end
 
