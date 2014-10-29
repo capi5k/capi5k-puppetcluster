@@ -2,7 +2,7 @@
 
 if ! [ -n "$PASSENGER_VERSION" ]; then export PASSENGER_VERSION="4.0.53"; fi
 
-apt -y install apache2 ruby1.8-dev rubygems libcurl4-openssl-dev libssl-dev zlib1g-dev apache2-threaded-dev libapr1-dev libaprutil1-dev
+apt-get install -y apache2 ruby1.8-dev rubygems libcurl4-openssl-dev libssl-dev zlib1g-dev apache2-threaded-dev libapr1-dev libaprutil1-dev
 a2enmod ssl
 a2enmod headers
 a2enmod version
