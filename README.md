@@ -29,6 +29,11 @@ cap puppetcluster:sign_all      # Sign all pending certificates
 
 ### Passenger support
 
+Once the puppetcluster is set and certificates are signed, you can install passenger using 
+
+```
+cap passenger
+```
 
 ### Troubeshootings
 
