@@ -72,6 +72,7 @@ namespace :puppetcluster do
       run "echo '\n #{ipmaster} puppet' >> /etc/hosts"
     end
 
+    desc 'Certificate request'
     task :certs, :roles => [:puppet_clients], :on_error => :continue do
       set :user, "root"   
       run "puppet agent --test" 
@@ -92,7 +93,6 @@ namespace :puppetcluster do
       install
     end
 
-    desc 'Install apache2 and passenger'
     task :install, :roles => [:puppet_master] do
       set :user, "root"
       upload "#{puppet_path}/passenger.sh", "passenger.sh", :via => :scp

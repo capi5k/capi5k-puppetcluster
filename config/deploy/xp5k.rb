@@ -26,7 +26,7 @@ $myxp.define_job({
 
 $myxp.define_deployment({
   :site           => "#{site}",
-  :environment    => "wheezy-x64-nfs",
+  :environment    => "ubuntu-x64-1204",
   :roles          => %w(capi5k-init),
   :key            => File.read("#{ssh_public}"), 
 })
