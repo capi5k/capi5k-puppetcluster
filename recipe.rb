@@ -52,7 +52,7 @@ namespace :puppetcluster do
     task :ip, :roles => [:puppet_master] do
       ip = capture("facter ipaddress")
       puts ip
-      File.write("tmp/ipmaster", ip)
+      File.write("#{puppet_path}/tmp/ipmaster", ip)
     end
 
   end
@@ -68,7 +68,7 @@ namespace :puppetcluster do
     task :install, :roles => [:puppet_clients] do
       set :user, "root"
       # pupet has been installed before
-      ipmaster = File.read("tmp/ipmaster").delete("\n")
+      ipmaster = File.read("#{puppet_path}/tmp/ipmaster").delete("\n")
       run "echo '\n #{ipmaster} puppet' >> /etc/hosts"
     end
 
