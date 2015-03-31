@@ -5,20 +5,20 @@ require 'erb'
 
 XP5K::Config.load
 
-set :site, ENV['site'] || "lyon"
-set :walltime, ENV['walltime'] || "05:00:00"
+set :site, ENV['site'] || "toulouse"
+set :walltime, ENV['walltime'] || "02:00:00"
 
 $myxp = XP5K::XP.new(:logger => logger)
 
 $myxp.define_job({
-  :resources  => ["nodes=2, walltime=#{walltime}"],
+  :resources  => ["nodes=3, walltime=#{walltime}"],
   :site       => "#{site}",
   :retry      => true,
   :goal       => "100%",
   :types      => ["deploy"],
   :name       => "init" , 
   :roles      =>  [
-    XP5K::Role.new({ :name => 'capi5k-init', :size => 2 }),
+    XP5K::Role.new({ :name => 'capi5k-init', :size => 3 }),
   ],
 
   :command    => "sleep 86400"

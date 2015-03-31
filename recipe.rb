@@ -1,5 +1,7 @@
 set :puppet_path, "#{recipes_path}/capi5k-puppetcluster"
 
+require 'erb'
+
 load "#{puppet_path}/roles.rb"
 load "#{puppet_path}/roles_definition.rb"
 load "#{puppet_path}/output.rb"
@@ -14,19 +16,11 @@ namespace :puppetcluster do
   
   desc 'Install a puppet cluster' 
   task :default, :on_error => :continue do
-    rubygems
     puppet
     master::default
     clients::default
-    sign_all
   end
   
-  task :rubygems, :roles => [:puppet_master, :puppet_clients], :on_error => :continue do
-    set :user, "root"
-    run "#{apt_get_p} install -y rubygems" 
-  end
-
-
   task :puppet, :roles => [:puppet_master, :puppet_clients] do
     set :user, "root"
     env = "PUPPET_VERSION=#{PUPPET_VERSION}"
@@ -41,18 +35,50 @@ namespace :puppetcluster do
     task :default do
       install
       ip
+      configure::default
     end
 
-    task :install, :roles => [:puppet_master],  :on_error => :continue do
+    task :install, :roles => [:puppet_master] do
       set :user, "root"
       run "apt-get -y install puppetmaster=#{PUPPET_VERSION}-1puppetlabs1 puppetmaster-common=#{PUPPET_VERSION}-1puppetlabs1"
-      run "puppet agent -t"
     end
 
     task :ip, :roles => [:puppet_master] do
       ip = capture("facter ipaddress")
       puts ip
       File.write("#{puppet_path}/tmp/ipmaster", ip)
+    end
+    
+    namespace :configure do
+     
+      task :default do
+        fix
+        generate
+        transfer       
+      end
+
+      task :fix, :roles => [:puppet_master] do
+        run "rm -rf /var/lib/puppet/yaml"
+      end
+
+
+      task :generate do
+        agents = find_servers :roles => [:puppet_clients]
+        @agents = agents.map{|a| a.host}
+        template = File.read("#{puppet_path}/templates/autosign.conf.erb")
+        renderer = ERB.new(template, nil, '-<>')
+        generate = renderer.result(binding)
+        myFile = File.open("#{puppet_path}/tmp/autosign.conf", "w")
+        myFile.write(generate)
+        myFile.close
+      end
+
+      task :transfer, :roles => [:puppet_master] do
+        set :user, "root"
+        upload "#{puppet_path}/tmp/autosign.conf", "/etc/puppet/autosign.conf", :via => :scp
+        run "service puppetmaster restart"
+      end
+
     end
 
   end
@@ -73,18 +99,13 @@ namespace :puppetcluster do
     end
 
     desc 'Certificate request'
-    task :certs, :roles => [:puppet_clients], :on_error => :continue do
+    task :certs, :roles => [:puppet_clients] do
       set :user, "root"   
       run "puppet agent --test" 
     end
 
   end # clients
 
-  desc 'Sign all pending certificates'
-  task :sign_all, :roles => [:puppet_master] do
-    set :user, "root"
-    run "puppet cert sign --all" 
-  end
 
   namespace :passenger do
     # it follows https://docs.puppetlabs.com/guides/passenger.html
